@@ -1,3 +1,4 @@
+module P123 where
 import Prelude hiding (take, drop, zipWith)
 
 -- take, drop

@@ -1,5 +1,7 @@
 module P456 where
 import P123 hiding (take, drop, zipWith)
+import Parse
+import Prelude hiding (exp, pure)
 
 -- pascal
 pascal :: Tri Integer
@@ -35,3 +37,46 @@ primes = nextPrime 2
 
 -- edit
 -- will return at a later time
+
+-- Ha!
+data Prog = Prog [Eqn]
+            deriving Show
+data Eqn = Eqn Name [Pat] Exp
+            deriving Show
+data Exp = Nil | Var Name | App Name [Exp] | Cons Exp Exp
+            deriving Show
+data Pat = PNil | PVar Name | PCons Name Name
+            deriving Show
+type Name = String
+
+
+prog :: Parser Prog
+prog = Prog .:. many1 eqn
+
+eqn :: Parser Eqn
+eqn = Eqn .:. name .*. many pat ..* sym "=" .*. exp
+
+exp :: Parser Exp
+exp = consOrArg .:. app .*. (Just .:. sym ":" *.. exp .|. pure Nothing)
+    where
+        consOrArg a (Just ex) = Cons a ex
+        consOrArg a Nothing = a
+
+app :: Parser Exp
+app = appOrVar .:. name .*. many arg
+    where
+        appOrVar n [] = Var n
+        appOrVar n as = App n as
+
+arg :: Parser Exp
+arg = Nil ... sym "[]"
+        .|. Var .:. name
+        .|. sym "(" *.. exp ..* sym ")"
+
+pat :: Parser Pat
+pat = PNil ... sym "[]"
+        .|. PVar .:. name
+        .|. PCons .:. sym "(" *.. name ..* sym ":" .*. name ..* sym ")"
+
+name :: Parser String
+name = many1 lower

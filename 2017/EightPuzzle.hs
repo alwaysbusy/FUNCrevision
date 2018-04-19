@@ -2,7 +2,7 @@ import Data.Char (isDigit)
 import Data.List (sort, transpose, permutations, isInfixOf, intersperse)
 import System.IO (hFlush, stdout)
 import Test.FitSpec hiding (rows)
-import System.Random (randomRIO, randomR, Random)
+import System.Random (randomRIO, Random)
 
 -- This program is about sliding-block puzzles in a
 -- a 3x3 grid with eight tiles and one free space.
@@ -129,44 +129,22 @@ getValidMove e  =  do putStr "Move? " ; hFlush stdout
                               getValidMove e
 
 randomEight :: IO Eight
-randomEight  =  error "Declare a working 'minSolve'.  See Q1(f)."
---randomEight  = do
-                --randomNs <- randomNums []
-                --randomS <- map (\x -> if x == 0 then " " else show x) randomNs
-                --if invariant (E randomS) then
-                    --E randomS
-                --else
-                    --randomEight
-            --where
-                --randomNums :: IO [Int] -> IO [Int]
-                --randomNums xs | length xs == 9 = xs
-                --randomNums xs = if rand `elem` xs then
-                  --                  randomNums xs
-                    --            else
-                      --              randomNums rand:xs
-                    --where
-                      --  rand :: IO Int
-                        --rand = (randomRIO(0, 8) :: Random Int)
+randomEight  =  do rand <- randomRIO (0, (length allEights - 1))
+                   return (E (allEights!!rand))
+    where
+        allEights :: [String]
+        allEights = filter (even . falls . filter isDigit) (permutations " 12345678")
 
-randomEi :: Eight
-randomEi = do
-                randomNs <- randomNums []
-                randomS <- map (\x -> if x == 0 then " " else show x) randomNs
-                if invariant (E randomS) then
-                    E randomS
-                else
-                    randomEi
-            where
-                randomNums :: [Int] -> [Int]
-                randomNums xs | length xs == 9 = xs
-                randomNums xs = if rand `elem` xs then
-                                    randomNums xs
-                                else
-                                    randomNums rand:xs
-                    where
-                        rand :: Int
-                        rand = (randomR(0, 8) :: Random Int)
-
+data State = State Eight Int
+        
 minSolve :: Eight -> Int
-minSolve  =  error "Declare a working 'minSolve'.  See Q1(f)."
+minSolve st = findNext (State st 0) []
+    where
+        findNext :: State -> [String] -> Int
+        findNext (State e count) _ | isGoal e = count
+        findNext (State e count) history = if length nextMoves == 0 then 100000 else minimum nextMoves 
+            where
+                nextMoves = [findNext (State (makeMove poss e) (count + 1)) ((estr e):history) | [poss] <- map show [1..8], validMove [poss] e, (estr (makeMove poss e) `elem` history) == False]
+                estr :: Eight -> String
+                estr (E s) = s
 

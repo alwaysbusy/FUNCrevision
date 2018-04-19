@@ -117,4 +117,4 @@ change _ 0 = [[]]
 change xs v = [c:b | c <- xs, c <= v, b <- change (filter (>= c) xs) (v - c)]
 
 -- ktrain
--- Will return to at a later time
+-- See Ktrain.hs
